@@ -4,16 +4,21 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import WikiLayout from "./components/WikiLayout";
 import Home from "./pages/Home";
+import WikiArticle from "./pages/WikiArticle";
 
 function Router() {
   return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
+    <WikiLayout>
+      <Switch>
+        <Route path={"/"} component={Home} />
+        <Route path={"/wiki/:id"} component={WikiArticle} />
+        <Route path={"/404"} component={NotFound} />
+        {/* Final fallback route */}
+        <Route component={NotFound} />
+      </Switch>
+    </WikiLayout>
   );
 }
 
