@@ -5,16 +5,18 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import WikiLayout from "./components/WikiLayout";
-import Home from "./pages/Home";
+import AllTopicsHome from "./pages/AllTopicsHome";
+import TopicHome from "./pages/TopicHome";
 import WikiArticle from "./pages/WikiArticle";
 
 function Router() {
   return (
     <WikiLayout>
       <Switch>
-        <Route path={"/"} component={Home} />
-        <Route path={"/wiki/:id"} component={WikiArticle} />
-        <Route path={"/404"} component={NotFound} />
+        <Route path="/" component={AllTopicsHome} />
+        <Route path="/topics/:topicId" component={TopicHome} />
+        <Route path="/topics/:topicId/wiki/:id" component={WikiArticle} />
+        <Route path="/404" component={NotFound} />
         {/* Final fallback route */}
         <Route component={NotFound} />
       </Switch>

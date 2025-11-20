@@ -2,17 +2,18 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Streamdown } from "streamdown";
 import { ChevronRight, Tag, BookOpen } from "lucide-react";
-import { WikiPage as WikiPageType, pageIndex, categoryIndex } from "@/data/wikiContent";
+import { pageIndex, categoryIndex, topicIndex } from "@/data/topics";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 interface WikiPageProps {
   pageId: string;
+  topicId: string;
 }
 
-export default function WikiPage({ pageId }: WikiPageProps) {
-  const [page, setPage] = useState<WikiPageType | null>(null);
+export default function WikiPage({ pageId, topicId }: WikiPageProps) {
+  const [page, setPage] = useState<ReturnType<typeof pageIndex.get> | null>(null);
 
   useEffect(() => {
     const foundPage = pageIndex.get(pageId);
@@ -41,6 +42,7 @@ export default function WikiPage({ pageId }: WikiPageProps) {
   }
 
   const category = categoryIndex.get(page.category);
+  const topic = topicIndex.get(topicId);
 
   return (
     <div className="container max-w-4xl py-8">
@@ -50,6 +52,14 @@ export default function WikiPage({ pageId }: WikiPageProps) {
           <a className="hover:text-foreground transition-colors">首頁</a>
         </Link>
         <ChevronRight className="h-4 w-4" />
+        {topic && (
+          <>
+            <Link href={`/topics/${topicId}`}>
+              <a className="hover:text-foreground transition-colors">{topic.title}</a>
+            </Link>
+            <ChevronRight className="h-4 w-4" />
+          </>
+        )}
         {category && (
           <>
             <span>{category.title}</span>
@@ -95,7 +105,7 @@ export default function WikiPage({ pageId }: WikiPageProps) {
               const relatedCategory = categoryIndex.get(relatedPage.category);
 
               return (
-                <Link key={relatedId} href={`/wiki/${relatedId}`}>
+                <Link key={relatedId} href={`/topics/${topicId}/wiki/${relatedId}`}>
                   <a>
                     <Card className="h-full transition-colors hover:bg-accent">
                       <CardHeader>

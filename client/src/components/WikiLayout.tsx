@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Menu, X, Search, BookOpen, AlertTriangle, Wrench, Network, Activity, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { wikiData } from "@/data/wikiContent";
+import { topics, topicIndex } from "@/data/topics";
 import { APP_TITLE } from "@/const";
 
 interface WikiLayoutProps {
@@ -23,13 +23,22 @@ export default function WikiLayout({ children }: WikiLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredCategories = wikiData.map(category => ({
-    ...category,
-    pages: category.pages.filter(page =>
-      page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      page.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-    )
-  })).filter(category => category.pages.length > 0);
+  // 獲取當前主題
+  const currentTopicId = location.split('/')[2]; // /topics/:topicId/...
+  const currentTopic = currentTopicId ? topicIndex.get(currentTopicId) : null;
+  
+  // 搜尋功能：在當前主題內搜尋
+  const filteredCategories = currentTopic && searchQuery
+    ? currentTopic.categories.map(category => ({
+        ...category,
+        pages: category.pages.filter(page =>
+          page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          page.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        )
+      })).filter(category => category.pages.length > 0)
+    : currentTopic
+    ? currentTopic.categories
+    : [];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -110,41 +119,73 @@ export default function WikiLayout({ children }: WikiLayoutProps) {
               </a>
             </Link>
 
-            {/* 分類與頁面列表 */}
-            <nav className="space-y-6">
-              {filteredCategories.map((category) => {
-                const Icon = iconMap[category.icon] || BookOpen;
-                return (
-                  <div key={category.id}>
-                    <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-muted-foreground">
-                      <Icon className="h-4 w-4" />
-                      <span>{category.title}</span>
-                    </div>
-                    <ul className="space-y-1 ml-6">
-                      {category.pages.map((page) => (
-                        <li key={page.id}>
-                          <Link href={`/wiki/${page.id}`}>
-                            <a
-                              className={`
-                                block px-3 py-1.5 rounded-md text-sm
-                                transition-colors
-                                ${location === `/wiki/${page.id}`
-                                  ? 'bg-accent text-accent-foreground font-medium'
-                                  : 'text-foreground hover:bg-accent/50'
-                                }
-                              `}
-                              onClick={() => setSidebarOpen(false)}
-                            >
-                              {page.title}
-                            </a>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </nav>
+            {/* 主題列表 */}
+            {!currentTopic && (
+              <div className="mb-6">
+                <div className="text-sm font-semibold text-muted-foreground mb-2">主題</div>
+                <ul className="space-y-1">
+                  {topics.map((topic) => (
+                    <li key={topic.id}>
+                      <Link href={`/topics/${topic.id}`}>
+                        <a
+                          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-accent"
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <span>{topic.title}</span>
+                        </a>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 當前主題的分類與文章 */}
+            {currentTopic && (
+              <>
+                <div className="mb-4">
+                  <Link href={`/topics/${currentTopicId}`}>
+                    <a className="text-sm font-semibold text-primary hover:underline">
+                      ← 返回 {currentTopic.title} 首頁
+                    </a>
+                  </Link>
+                </div>
+                <nav className="space-y-6">
+                  {filteredCategories.map((category) => {
+                    const Icon = iconMap[category.icon] || BookOpen;
+                    return (
+                      <div key={category.id}>
+                        <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-muted-foreground">
+                          <Icon className="h-4 w-4" />
+                          <span>{category.title}</span>
+                        </div>
+                        <ul className="space-y-1 ml-6">
+                          {category.pages.map((page) => (
+                            <li key={page.id}>
+                              <Link href={`/topics/${currentTopicId}/wiki/${page.id}`}>
+                                <a
+                                  className={`
+                                    block px-3 py-1.5 rounded-md text-sm
+                                    transition-colors
+                                    ${location === `/topics/${currentTopicId}/wiki/${page.id}`
+                                      ? 'bg-accent text-accent-foreground font-medium'
+                                      : 'text-foreground hover:bg-accent/50'
+                                    }
+                                  `}
+                                  onClick={() => setSidebarOpen(false)}
+                                >
+                                  {page.title}
+                                </a>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </nav>
+              </>
+            )}
           </div>
         </aside>
 
